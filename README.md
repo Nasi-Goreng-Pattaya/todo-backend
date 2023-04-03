@@ -15,6 +15,7 @@ npm run server
 
 * [Express.js](https://expressjs.com/) - The web framework used
 * [Node.js](https://nodejs.org/) - JavaScript runtime environment
+* [TypeScript](https://www.typescriptlang.org/) - A typed superset of JavaScript that compiles to plain JavaScript
 
 ## License
 

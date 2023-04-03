@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "target": "es2017", // Specifies the ECMAScript target version for the compiled JavaScript code.
+      "module": "commonjs", // Specifies the module system used by the TypeScript code.
+      "lib": ["es2017"], // Specifies the library files to include in the compilation process.
+      "outDir": "./dist", // Specifies the directory where compiled JavaScript files will be saved.
+      "rootDir": "./src", // Specifies the directory where TypeScript source files are located.
+      "esModuleInterop": true, // Enables compatibility with modules that use CommonJS-style exports.
+      "sourceMap": true, // Generates source maps for the compiled JavaScript code.
+      "strict": true, // Enables strict type checking and other type-related features.
+      "moduleResolution": "node", // Specifies how TypeScript resolves module dependencies.
+      "resolveJsonModule": true, // Enables the importing of JSON files as modules.
+      "declaration": true // Generates declaration files (.d.ts) for the TypeScript code.
+    },
+    "include": ["src/**/*"], // Specifies the files and directories to include in the compilation process.
+    "exclude": ["node_modules", "**/*.spec.ts"] // Specifies the files and directories to exclude from the compilation process.
+  }
