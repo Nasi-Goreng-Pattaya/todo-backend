@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import asyncHandler from 'express-async-handler'
-import { deleteUser, loginUser, registerUser, updateUser } from "../services/UserServices"
+import { deleteUser, loginUser, registerUser, updateUser } from "../services/UserService"
 
 // @desc Get user data
 // @route GET /api/user/me
