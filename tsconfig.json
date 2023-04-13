@@ -14,4 +14,4 @@
     },
     "include": ["src/**/*"], // Specifies the files and directories to include in the compilation process.
     "exclude": ["node_modules", "**/*.spec.ts"] // Specifies the files and directories to exclude from the compilation process.
-  }
+}
