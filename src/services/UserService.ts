@@ -32,12 +32,12 @@ const registerUser = async (userBody: Object) => {
     }
 }
 
-const updateUser = (id: string, newInfoBody: Object) => {
-    return User.findByIdAndUpdate(id, newInfoBody, { new: true }).select('-password')
+const updateUser = async (id: string, newInfoBody: Object) => {
+    return await User.findByIdAndUpdate(id, newInfoBody, { new: true }).select('-password')
 }
 
-const deleteUser = (id: string) => {
-    return User.findByIdAndRemove(id).select('-password')
+const deleteUser = async (id: string) => {
+    return await User.findByIdAndRemove(id).select('-password')
 }
 
 // Generate JWT Token
