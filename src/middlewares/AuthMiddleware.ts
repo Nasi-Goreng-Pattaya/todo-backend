@@ -21,9 +21,9 @@ const protect = asyncHandler(async (req: Request, res: Response, next: NextFunct
                 next(new Error('User not found'))
                 return
             }
-
-            // Attach user object to request body
-            req.body = user
+                
+            // Attach user object to request body, original request body might be empty or contains task object
+            req.body = { ...req.body, user }
             next()
         } catch (err) {
             next(err)
