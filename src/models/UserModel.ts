@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
         message: (props: { value: string }) =>
           `${props.value} contains symbols, only alphanumeric characters are allowed!`,
       },
+      unique: true,
     },
     email: {
       type: String,
@@ -20,10 +21,12 @@ const userSchema = new mongoose.Schema(
         message: (props: { value: string }) =>
           `${props.value} is not a valid email address!`,
       },
+      select: false,
     },
     password: {
       type: String,
       required: [true, "Please enter a password"],
+      select: false,
     },
     gender: {
       type: String,
