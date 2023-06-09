@@ -8,7 +8,7 @@ daily tasks and schedule.
 First, run the development server:
 
 ```
-npm run server
+npm start
 ```
 
 ## Built With
