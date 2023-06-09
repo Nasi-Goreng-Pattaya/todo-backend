@@ -4,8 +4,7 @@
   "description": "Todo List Application for WIF2003",
   "main": "server.js",
   "scripts": {
-    "start": "node ./src/server.ts",
-    "server": "nodemon ./src/server.ts"
+    "start": "nodemon ./src/server.ts"
   },
   "author": "",
   "license": "MIT",
