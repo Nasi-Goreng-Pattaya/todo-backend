@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/ErrorMiddleware";
 import { taskRouter } from "./routes/TaskRoutes";
 import colors from "colors";
 import cors from "cors";
+import { reminderRouter } from "./routes/ScheduleRoutes";
 
 dotenv.config();
 connectDB();
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/user", userRouter);
 app.use("/api/task", taskRouter);
+app.use("/api/reminder", reminderRouter);
 
 app.use(errorHandler);
 

@@ -1,4 +1,4 @@
-import mongoose, { InferSchemaType } from "mongoose";
+import mongoose, { Document, InferSchemaType, Types } from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
@@ -54,6 +54,6 @@ const taskSchema = new mongoose.Schema(
   }
 );
 
-type Task = InferSchemaType<typeof taskSchema>;
+export type Task = InferSchemaType<typeof taskSchema>;
 
-export default mongoose.model<Task>("Task", taskSchema);
+export default mongoose.model("Task", taskSchema);
