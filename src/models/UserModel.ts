@@ -67,6 +67,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-type User = InferSchemaType<typeof userSchema>;
+export type UserType = InferSchemaType<typeof userSchema>;
 
 export default mongoose.model("User", userSchema);
