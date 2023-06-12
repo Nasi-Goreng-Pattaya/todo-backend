@@ -5,6 +5,7 @@ import {
   getTasks,
   updateTask,
   addTask,
+  getTaskById,
 } from "../services/TaskService";
 import Task from "../models/TaskModel";
 
@@ -14,6 +15,13 @@ import Task from "../models/TaskModel";
 const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
+    res.json(tasks);
+  }
+);
+
+const tryToGetTaskById: RequestHandler = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const tasks = await getTaskById(req.params.id, req.body.user.id);
     res.json(tasks);
   }
 );
@@ -55,6 +63,7 @@ const tryToDeleteTask = asyncHandler(
 
 export {
   tryToGetTasks as getTasks,
+  tryToGetTaskById as getTaskById,
   tryToAddTask as addTask,
   tryToUpdateTask as updateTask,
   tryToDeleteTask as deleteTask,

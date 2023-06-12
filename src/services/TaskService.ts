@@ -5,6 +5,11 @@ const getTasks = async (userId: string) => {
   return tasks;
 };
 
+const getTaskById = async (taskId: string, userId: string) => {
+  const tasks = await Task.findOne({ _id: taskId, userId: userId }).exec();
+  return tasks;
+};
+
 const addTask = async (taskBody: Object, userId: string) => {
   const task = await Task.create({ ...taskBody, userId });
   return task;
@@ -18,4 +23,4 @@ const deleteTask = async (id: string) => {
   return await Task.findByIdAndRemove(id);
 };
 
-export { getTasks, addTask, updateTask, deleteTask };
+export { getTasks, getTaskById, addTask, updateTask, deleteTask };
