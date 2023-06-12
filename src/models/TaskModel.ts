@@ -25,10 +25,6 @@ const taskSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    progress: {
-      type: Number,
-      default: 0,
-    },
     content: {
       type: String,
       required: true,
@@ -47,9 +43,10 @@ const taskSchema = new mongoose.Schema(
         message: "Due date cannot be in the past",
       },
     },
-    isCompleted: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ["todo", "inprogress", "completed"],
+      default: "todo",
     },
   },
   {
