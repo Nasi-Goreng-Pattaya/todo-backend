@@ -118,7 +118,6 @@ schedule.createSchedule = async (data: Task): Promise<void> => {
       notification: {
         title: data.title,
         content: data.content,
-        progress: data.progress,
       },
     });
     // await scheduledNotification.save();
@@ -143,7 +142,6 @@ schedule.createSchedule = async (data: Task): Promise<void> => {
       const payload = {
         title: data.title,
         content: data.content,
-        progress: data.progress,
       };
       try {
         const emailStruc = {
@@ -152,7 +150,6 @@ schedule.createSchedule = async (data: Task): Promise<void> => {
           subject: payload.title,
           text: {
             content: payload.content,
-            progress: payload.progress,
           },
         };
         await mailTransporter.sendMail(emailStruc);
