@@ -9,12 +9,12 @@ reminderRouter.post(
   async (req: Request, res: Response) => {
     try {
       const payload = {
-        reminderDate: req.body.reminderDate,
-        reminderTime: req.body.reminderTime,
+        dueDateTime: req.body.dueDateTime,
         title: req.body.title,
         content: req.body.content,
         progress: req.body.progress,
       };
+
       await schedule.createSchedule(payload);
       res.json({
         data: {},

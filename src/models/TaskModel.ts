@@ -16,11 +16,11 @@ const taskSchema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
-    reminderDateTime: {
-      type: Date,
-      default: null,
-      required: false,
-    },
+    // reminderDateTime: {
+    //   type: Date,
+    //   default: null,
+    //   required: false,
+    // },
     title: {
       type: String,
       required: true,

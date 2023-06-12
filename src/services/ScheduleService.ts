@@ -111,14 +111,10 @@ const schedule: Record<string, any> = {};
 schedule.createSchedule = async (data: Task): Promise<void> => {
   try {
     const scheduledNotification = new ScheduledNotification({
-      // reminderDate: data.reminderDateTime?.getDay().toString(),
-      reminderDate: new Date("2023-06-30T14:00:00").getDay().toString(),
+      reminderDate: data.dueDateTime?.getDay?.toString(),
+      // reminderDate: new Date("2023-06-30T14:00:00").getDay().toString(),
 
-      reminderTime: data.reminderDateTime
-        ?.toISOString()
-        .split("T")[1]
-        .split(".")[0]
-        .toString(),
+      reminderTime: data.dueDateTime?.toDateString().split(" ")[1],
       notification: {
         title: data.title,
         content: data.content,
@@ -127,17 +123,13 @@ schedule.createSchedule = async (data: Task): Promise<void> => {
     });
     // await scheduledNotification.save();
     console.log("====================================");
-    console.log(scheduledNotification.reminderDate);
+    console.log(scheduledNotification);
     console.log("====================================");
     // const dayOfWeek = data.reminderDate?.join(",");
-    const dayOfWeek: string | undefined = data.reminderDateTime
-      ?.getDay()
-      .toString();
+    const dayOfWeek: string | undefined = data.dueDateTime?.getDay().toString();
     // const timeToSent = data.reminderDateTime?.split(":");
-    const hours: string | undefined = data.reminderDateTime
-      ?.getHours()
-      .toString();
-    const minutes: string | undefined = data.reminderDateTime
+    const hours: string | undefined = data.dueDateTime?.getHours().toString();
+    const minutes: string | undefined = data.dueDateTime
       ?.getMinutes()
       .toString();
     // if (timeToSent) {
