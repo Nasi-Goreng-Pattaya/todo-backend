@@ -37,9 +37,15 @@ const registerUser = async (userBody: Object) => {
 };
 
 const updateUser = async (id: string, newInfoBody: Object) => {
-  return await User.findByIdAndUpdate(id, newInfoBody, { new: true }).select(
-    "-password"
-  );
+  return await User.findByIdAndUpdate(id, newInfoBody, {
+    new: true,
+  }).select("-password");
+  // const base64String = user?.avatar?.toString("base64");
+  // if(user?.avatar) {
+  //   user.avatar = base64String;
+  // }
+  // console.log(user);
+  // return { ...user, avatar: base64String };
 };
 
 const deleteUser = async (id: string) => {

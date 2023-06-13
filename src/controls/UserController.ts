@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
+import { UploadedFile } from "express-fileupload";
 import {
   deleteUser,
   loginUser,
@@ -23,7 +24,9 @@ const tryToLoginUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
     const user = await loginUser(email, password);
-    res.json(user);
+    const base64String = user.avatar?.toString("base64");
+
+    res.json({ ...user, avatar: base64String });
   }
 );
 
@@ -42,7 +45,27 @@ const tryToRegisterUser = asyncHandler(
 // @access Private
 const tryToUpdateUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    // if (req.files?.avatar) {
+    //   if (!Array.isArray(req.files.avatar)) {
+    //     // console.log(req.files.avatar.data);
+    //     req.body.avatar = req.files.avatar.data;
+    //   }
+    // }
+
+    // const file = req.files!.avatar;
+    // console.log(typeof file);
+    // if (file) {
+    //   req.body.avater = file;
+    // }
+    // req.body.avatar = file.data;
+
+    if (req.body.avatar) {
+      const buffer = Buffer.from(req.body.avatar, "base64");
+      req.body.avatar = buffer;
+    }
+
     const updatedUser = await updateUser(req.params.id, req.body);
+
     res.json(updatedUser);
   }
 );
