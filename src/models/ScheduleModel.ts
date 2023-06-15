@@ -1,12 +1,13 @@
-import mongoose, { InferSchemaType } from "mongoose";
+import mongoose, { InferSchemaType, Schema } from "mongoose";
+import Types from "mongoose";
 
 const reminderSchema = new mongoose.Schema(
   {
-    // reminderDateTime: {
-    //   type: Date,
-    //   default: null,
-    //   required: false,
-    // },
+    taskId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Task",
+    },
     reminderDate: {
       type: String,
       default: null,
@@ -28,8 +29,14 @@ const reminderSchema = new mongoose.Schema(
   }
 );
 
-export type Schedule = InferSchemaType<typeof reminderSchema>;
+export interface ScheduleData {
+  taskId: string;
+  reminderDate: string;
+  reminderTime: string;
+  title: string;
+  content: string;
+}
 
-// const ScheduledNotification =
+export type Schedule = InferSchemaType<typeof reminderSchema>;
 
 export default mongoose.model("scheduledNotification", reminderSchema);

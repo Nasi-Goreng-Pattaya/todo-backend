@@ -1,17 +1,12 @@
 import * as scheduleLib from "node-schedule";
 import * as _ from "lodash";
-import ScheduledNotification, { Schedule } from "../models/ScheduleModel";
+import ScheduledNotification, {
+  Schedule,
+  ScheduleData,
+} from "../models/ScheduleModel";
 import nodemailer, { Transporter } from "nodemailer";
 import User from "../models/UserModel";
 import TaskModel from "../models/TaskModel";
-
-interface ScheduleData {
-  _id: string;
-  reminderDate: string;
-  reminderTime: string;
-  title: string;
-  content: string;
-}
 
 const mailTransporter: Transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -27,6 +22,7 @@ const schedule: Record<string, any> = {};
 schedule.createSchedule = async (data: ScheduleData): Promise<void> => {
   try {
     const scheduledNotification = new ScheduledNotification({
+      taskId: data.taskId,
       reminderDate: data.reminderDate,
       reminderTime: data.reminderTime,
       notification: {
@@ -107,7 +103,7 @@ schedule.getJobs = function () {
 };
 
 schedule.updateSchedule = async (data: ScheduleData) => {
-  const scheduleId = data._id;
+  const scheduleId = data.taskId;
   try {
     let originalSchedule = await ScheduledNotification.findById(scheduleId);
     if (originalSchedule) {

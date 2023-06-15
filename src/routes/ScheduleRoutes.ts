@@ -1,7 +1,7 @@
 import express, { Response, Request } from "express";
 import {
   addSchedule,
-  deleteSchedule,
+  deleteDueSchedule,
   getSchedule,
 } from "../controls/ScheduleController";
 
@@ -11,6 +11,6 @@ reminderRouter.post("/createSchedule", addSchedule);
 
 reminderRouter.get("/fetchNotification", getSchedule);
 
-reminderRouter.delete("/deleteNotification", deleteSchedule);
+reminderRouter.delete("/deleteNotification", deleteDueSchedule);
 
 reminderRouter.put("/updateNotification");

@@ -7,7 +7,12 @@ import {
   addTask,
   getTaskById,
 } from "../services/TaskService";
-import { addSchedule } from "./ScheduleController";
+import moment from "moment";
+import schedule from "../services/ScheduleService";
+import TaskModel from "../models/TaskModel";
+import ScheduledNotification from "../models/ScheduleModel";
+import ScheduleModel from "../models/ScheduleModel";
+import { Schedule, ScheduleData } from "../models/ScheduleModel";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -15,9 +20,19 @@ import { addSchedule } from "./ScheduleController";
 const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
-    res.json(tasks);
-    // await addSchedule(req, res, next);
-    // next();
+    try {
+      const activeJobId = req.body.id;
+      const list = schedule.getJobs();
+      const currentJob = list[activeJobId];
+      if (!currentJob) {
+        throw new Error("Job not found");
+      }
+      await ScheduledNotification.findByIdAndRemove(activeJobId);
+      currentJob.cancel();
+      res.json(tasks);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message, success: false });
+    }
   }
 );
 
@@ -39,9 +54,41 @@ const tryToAddTask: RequestHandler = async (
   const userId = req.body.user.id;
   delete req.body.user;
   const newTask = await addTask(req.body, userId);
-  // addSchedule(req, res);
-  // next();
-  res.json(newTask);
+  const reminderFlag = req.body.hasReminder;
+  const prior = req.body.priority;
+  const dueDateTime = req.body.dueDateTime;
+  const scheduleTaskId = newTask._id;
+  let reminderDate = "";
+  let reminderTime = "";
+  if (reminderFlag) {
+    if (prior) {
+      if (prior === "low") {
+        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderTime = moment(dueDateTime).subtract(1, "hour").format("HH:mm");
+      } else if (prior === "medium") {
+        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderTime = moment(dueDateTime).subtract(3, "hour").format("HH:mm");
+      } else if (prior === "high") {
+        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderTime = moment(dueDateTime).subtract(6, "hour").format("HH:mm");
+      }
+    }
+  }
+  try {
+    const payload = {
+      taskId: scheduleTaskId,
+      reminderDate: reminderDate,
+      reminderTime: reminderTime,
+      title: req.body.title,
+      content: req.body.content,
+    };
+
+    await schedule.createSchedule(payload);
+    // await ScheduleModel.updateOne({ taskId: newTask._id });
+    res.json(newTask);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message, success: false });
+  }
 };
 
 // @desc Update task
@@ -51,8 +98,60 @@ const tryToUpdateTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     delete req.body.user;
     const updatedTask = await updateTask(req.params.id, req.body);
-    res.json(updatedTask);
-    next();
+    const taskId = req.params.id;
+    const reminderFlag = req.body.hasReminder;
+    const prior = req.body.priority;
+    const dueDateTime = req.body.dueDateTime;
+    const existingTask = await TaskModel.findById(taskId);
+    let reminderDate = "";
+    let reminderTime = "";
+    if (reminderFlag) {
+      if (dueDateTime !== existingTask?.dueDateTime) {
+        if (prior) {
+          if (prior === "low") {
+            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderTime = moment(dueDateTime)
+              .subtract(1, "hour")
+              .format("HH:mm");
+          } else if (prior === "medium") {
+            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderTime = moment(dueDateTime)
+              .subtract(3, "hour")
+              .format("HH:mm");
+          } else if (prior === "high") {
+            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderTime = moment(dueDateTime)
+              .subtract(6, "hour")
+              .format("HH:mm");
+          }
+        }
+      }
+    }
+    try {
+      const matchingTaskId = await ScheduledNotification.findOne({
+        taskId: taskId,
+      });
+      if (matchingTaskId) {
+        await ScheduledNotification.updateOne(
+          { taskId: taskId },
+          {
+            reminderDate: reminderDate,
+            reminderTime: reminderTime,
+            title: req.body.title,
+            content: req.body.content,
+          }
+        );
+      } else {
+        res.json({
+          Task: updatedTask,
+          Schedule: "No matching schedule",
+          TaskId: taskId,
+        });
+      }
+      // res.json(updatedTask);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message, success: false });
+    }
   }
 );
 
@@ -62,8 +161,19 @@ const tryToUpdateTask = asyncHandler(
 const tryToDeleteTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const deletedTask = await deleteTask(req.params.id);
-    res.json(deletedTask);
-    next();
+    const taskId = req.params.id;
+
+    try {
+      const matchingTaskId = await ScheduledNotification.findOne({
+        taskId: taskId,
+      });
+      if (matchingTaskId) {
+        await ScheduledNotification.deleteOne({ taskId: taskId });
+      }
+      res.json(deletedTask);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message, success: false });
+    }
   }
 );
 

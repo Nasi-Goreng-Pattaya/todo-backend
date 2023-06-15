@@ -118,14 +118,11 @@ const tryToUpdateSchedule: RequestHandler = asyncHandler(
   }
 );
 
-const tryToReschedule = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    // const reschedule = schedule.reSchedule();
-    // res.json(updatedTask);
-  }
-);
+const tryToReschedule: RequestHandler = asyncHandler(async () => {
+  await schedule.reSchedule();
+});
 
-const tryToDeleteSchedule = asyncHandler(
+const tryToDeleteDueSchedule = asyncHandler(
   async (req: Request, res: Response) => {
     try {
       const activeJobId = req.body.id;
@@ -147,9 +144,29 @@ const tryToDeleteSchedule = asyncHandler(
   }
 );
 
+const tryToDeleteSchedule = asyncHandler(
+  async (req: Request, res: Response) => {
+    try {
+      const jobId = req.body.id;
+      if (!jobId) {
+        throw new Error("Job not found");
+      }
+      await ScheduledNotification.findByIdAndRemove(jobId);
+      res.json({
+        data: {},
+        status: "success",
+        message: "successful",
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message, success: false });
+    }
+  }
+);
+
 export {
   tryToGetSchedule as getSchedule,
   tryToAddSchedule as addSchedule,
   tryToUpdateSchedule as updateSchedule,
-  tryToDeleteSchedule as deleteSchedule,
+  tryToDeleteDueSchedule as deleteDueSchedule,
+  tryToReschedule as reSchedule,
 };
