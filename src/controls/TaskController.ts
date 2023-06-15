@@ -7,7 +7,7 @@ import {
   addTask,
   getTaskById,
 } from "../services/TaskService";
-import Task from "../models/TaskModel";
+import { addSchedule } from "./ScheduleController";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -16,6 +16,8 @@ const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
     res.json(tasks);
+    // await addSchedule(req, res, next);
+    // next();
   }
 );
 
@@ -37,6 +39,8 @@ const tryToAddTask: RequestHandler = async (
   const userId = req.body.user.id;
   delete req.body.user;
   const newTask = await addTask(req.body, userId);
+  // addSchedule(req, res);
+  // next();
   res.json(newTask);
 };
 
@@ -48,6 +52,7 @@ const tryToUpdateTask = asyncHandler(
     delete req.body.user;
     const updatedTask = await updateTask(req.params.id, req.body);
     res.json(updatedTask);
+    next();
   }
 );
 
@@ -58,6 +63,7 @@ const tryToDeleteTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const deletedTask = await deleteTask(req.params.id);
     res.json(deletedTask);
+    next();
   }
 );
 

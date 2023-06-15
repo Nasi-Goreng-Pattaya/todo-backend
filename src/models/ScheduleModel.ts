@@ -9,10 +9,12 @@ const reminderSchema = new mongoose.Schema(
     // },
     reminderDate: {
       type: String,
+      default: null,
       required: false,
     },
     reminderTime: {
       type: String,
+      default: null,
       required: false,
     },
     notification: {
@@ -26,9 +28,8 @@ const reminderSchema = new mongoose.Schema(
   }
 );
 
-const ScheduledNotification = mongoose.model(
-  "scheduledNotification",
-  reminderSchema
-);
+export type Schedule = InferSchemaType<typeof reminderSchema>;
 
-export default ScheduledNotification;
+// const ScheduledNotification =
+
+export default mongoose.model("scheduledNotification", reminderSchema);
