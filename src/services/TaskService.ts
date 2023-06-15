@@ -12,6 +12,7 @@ const getTaskById = async (taskId: string, userId: string) => {
 
 const addTask = async (taskBody: Object, userId: string) => {
   const task = await Task.create({ ...taskBody, userId });
+
   return task;
 };
 

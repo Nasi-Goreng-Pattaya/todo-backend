@@ -9,6 +9,7 @@ import {
 } from "../services/TaskService";
 import Task from "../models/TaskModel";
 import { ValidationError } from "express-validator";
+import { addSchedule } from "./ScheduleController";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -17,6 +18,8 @@ const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
     res.json(tasks);
+    // await addSchedule(req, res, next);
+    // next();
   }
 );
 
@@ -36,6 +39,8 @@ const tryToAddTask = async (req: Request, res: Response) => {
   let newTask;
   try {
     newTask = await addTask(req.body, userId);
+    // addSchedule(req, res);
+    // next();
     res.json(newTask);
   } catch (e) {
     res.status(400).json(e);
@@ -54,6 +59,7 @@ const tryToUpdateTask = asyncHandler(
     } catch (e) {
       res.status(400).json(e);
     }
+    next();
   }
 );
 
@@ -64,6 +70,7 @@ const tryToDeleteTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const deletedTask = await deleteTask(req.params.id);
     res.json(deletedTask);
+    next();
   }
 );
 
