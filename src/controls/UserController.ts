@@ -66,7 +66,14 @@ const tryToUpdateUser = asyncHandler(
 
     const updatedUser = await updateUser(req.params.id, req.body);
 
-    res.json(updatedUser);
+    const updatedUserJson = updatedUser?.toJSON();
+
+    const responseUser = {
+      ...updatedUserJson,
+      avatar: updatedUser?.avatar?.toString("base64"),
+    };
+
+    res.json(responseUser);
   }
 );
 
