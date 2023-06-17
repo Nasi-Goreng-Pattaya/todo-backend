@@ -1,3 +1,4 @@
+import moment from "moment";
 import mongoose, { Document, InferSchemaType, Types } from "mongoose";
 
 const taskSchema = new mongoose.Schema(
@@ -38,7 +39,7 @@ const taskSchema = new mongoose.Schema(
       required: [true, "Please select a due date"],
       validate: {
         validator: (v: Date) => {
-          return v > new Date();
+          return moment(v).isAfter(moment());
         },
         message: "Due date cannot be in the past",
       },

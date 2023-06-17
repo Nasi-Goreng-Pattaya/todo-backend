@@ -8,6 +8,7 @@ import {
   getTaskById,
 } from "../services/TaskService";
 import Task from "../models/TaskModel";
+import { ValidationError } from "express-validator";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -29,15 +30,16 @@ const tryToGetTaskById: RequestHandler = asyncHandler(
 // @desc Add new task to user's tasks
 // @route POST /api/task
 // @access Private
-const tryToAddTask: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const tryToAddTask = async (req: Request, res: Response) => {
   const userId = req.body.user.id;
   delete req.body.user;
-  const newTask = await addTask(req.body, userId);
-  res.json(newTask);
+  let newTask;
+  try {
+    newTask = await addTask(req.body, userId);
+    res.json(newTask);
+  } catch (e) {
+    res.status(400).json(e);
+  }
 };
 
 // @desc Update task
@@ -46,8 +48,12 @@ const tryToAddTask: RequestHandler = async (
 const tryToUpdateTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     delete req.body.user;
-    const updatedTask = await updateTask(req.params.id, req.body);
-    res.json(updatedTask);
+    try {
+      const updatedTask = await updateTask(req.params.id, req.body);
+      res.json(updatedTask);
+    } catch (e) {
+      res.status(400).json(e);
+    }
   }
 );
 

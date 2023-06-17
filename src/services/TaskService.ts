@@ -16,7 +16,10 @@ const addTask = async (taskBody: Object, userId: string) => {
 };
 
 const updateTask = async (id: string, newInfoBody: Object) => {
-  return await Task.findByIdAndUpdate(id, newInfoBody, { new: true });
+  return await Task.findByIdAndUpdate(id, newInfoBody, {
+    new: true,
+    runValidators: true,
+  });
 };
 
 const deleteTask = async (id: string) => {
