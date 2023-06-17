@@ -18,19 +18,7 @@ import ScheduledNotification from "../models/ScheduleModel";
 const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
-    try {
-      const activeJobId = req.body.id;
-      const list = schedule.getJobs();
-      const currentJob = list[activeJobId];
-      if (!currentJob) {
-        throw new Error("Job not found");
-      }
-      await ScheduledNotification.findByIdAndRemove(activeJobId);
-      currentJob.cancel();
-      res.json(tasks);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message, success: false });
-    }
+    res.json(tasks);
   }
 );
 
@@ -83,7 +71,7 @@ const tryToAddTask = async (req: Request, res: Response) => {
       content: req.body.content,
     };
 
-    await schedule.createSchedule(payload);
+    await schedule.createSchedule(payload, userId);
     // await ScheduleModel.updateOne({ taskId: newTask._id });
     res.json(newTask);
   } catch (error: any) {
