@@ -11,9 +11,6 @@ import moment from "moment";
 import schedule from "../services/ScheduleService";
 import TaskModel from "../models/TaskModel";
 import ScheduledNotification from "../models/ScheduleModel";
-import ScheduleModel from "../models/ScheduleModel";
-import { Schedule, ScheduleData } from "../models/ScheduleModel";
-import { forEach } from "lodash";
 import * as scheduleLib from "node-schedule";
 
 // @desc Get user's tasks data
@@ -103,23 +100,23 @@ const tryToUpdateTask = asyncHandler(
       return;
     }
     const taskId = req.params.id;
+    const scheduleList = schedule.getJobs();
+    console.log(scheduleList);
+
     const reminderFlag = req.body.hasReminder;
     const prior = req.body.priority;
     const dueDateTime = req.body.dueDateTime;
     const existingTask = await TaskModel.findById(taskId);
     let reminderDate = "";
     let reminderTime = "";
+    if (!reminderFlag || prior === "low") {
+      res.json(updatedTask);
+      return;
+    }
     if (reminderFlag) {
       if (dueDateTime !== existingTask?.dueDateTime) {
         if (prior) {
-          if (prior === "low") {
-            reminderDate = moment(dueDateTime)
-              .subtract(1, "hour")
-              .format("YYYY-MM-DD");
-            reminderTime = moment(dueDateTime)
-              .subtract(1, "hour")
-              .format("HH:mm");
-          } else if (prior === "medium") {
+          if (prior === "medium") {
             reminderDate = moment(dueDateTime)
               .subtract(3, "hour")
               .format("YYYY-MM-DD");
@@ -138,10 +135,20 @@ const tryToUpdateTask = asyncHandler(
       }
     }
     try {
+      const hours = moment(reminderTime).hours();
+      const minutes = moment(reminderTime).minutes();
+      const day = moment(reminderTime).day();
+      const month = moment(reminderTime).month();
+      const scheduleTimeOut = `${minutes} ${hours} ${day} ${month} *`;
       const matchingTaskId = await ScheduledNotification.findOne({
         taskId: taskId,
       });
-      if (matchingTaskId) {
+      const matchingScheduleId = matchingTaskId?._id;
+      if (matchingTaskId && matchingScheduleId) {
+        const matchingJob = scheduleList[
+          matchingScheduleId.toString()
+        ] as scheduleLib.Job;
+
         await ScheduledNotification.updateOne(
           { taskId: taskId },
           {
@@ -151,6 +158,8 @@ const tryToUpdateTask = asyncHandler(
             content: req.body.content,
           }
         );
+        matchingJob.reschedule(scheduleTimeOut);
+        res.json(updatedTask);
       } else {
         res.json(updatedTask);
       }
