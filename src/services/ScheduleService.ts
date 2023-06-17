@@ -87,8 +87,12 @@ schedule.createSchedule = async (
 
 schedule.reSchedule = async (): Promise<void> => {
   try {
-    const scheduledNotifications = await ScheduledNotification.find({});
-    scheduledNotifications.forEach(async (scheduledNotification: any) => {
+    const scheduledNotifications = await ScheduledNotification.find({}).exec();
+    scheduledNotifications.forEach(async (scheduledNotification) => {
+      const task = await TaskModel.findById(
+        scheduledNotification.taskId
+      ).exec();
+      const user = await UserModel.findById(task?.userId).exec();
       const dayToSent = scheduledNotification.reminderDate.split("-");
       const timeToSent = scheduledNotification.reminderTime.split(":");
       const hours = parseInt(timeToSent[0]);
@@ -98,23 +102,28 @@ schedule.reSchedule = async (): Promise<void> => {
       const year = parseInt(dayToSent[0]);
       const scheduleId = scheduledNotification._id.toString();
       const scheduleTimeout = `${minutes} ${hours} ${day} ${month} *`;
-      scheduleLib.scheduleJob(scheduleId, scheduleTimeout, async () => {
-        const payload = {
-          title: scheduledNotification.title,
-          content: scheduledNotification.content,
-        };
-        try {
-          const emailStruc = {
-            from: "tzehengleong567@gmail.com",
-            to: "tzehengleong567@gmail.com",
-            subject: payload.title,
-            text: payload.content,
+      const job = scheduleLib.scheduleJob(
+        scheduleId,
+        scheduleTimeout,
+        async () => {
+          const payload = {
+            title: task?.title,
+            content: task?.content,
           };
-          await mailTransporter.sendMail(emailStruc);
-        } catch (error) {
-          throw error;
+          try {
+            const emailStruc = {
+              from: "tzehengleong567@gmail.com",
+              to: user?.email,
+              subject: payload.title,
+              text: payload.content,
+            };
+            await mailTransporter.sendMail(emailStruc);
+          } catch (error) {
+            throw error;
+          }
         }
-      });
+      );
+      console.log(job);
     });
   } catch (error) {
     throw error;

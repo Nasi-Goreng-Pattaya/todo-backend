@@ -10,18 +10,15 @@ const reminderSchema = new mongoose.Schema(
     },
     reminderDate: {
       type: String,
-      default: null,
-      required: false,
+      required: true,
     },
     reminderTime: {
       type: String,
-      default: null,
-      required: false,
+      required: true,
     },
     notification: {
       type: Object,
-      default: null,
-      required: false,
+      required: true,
     },
   },
   {

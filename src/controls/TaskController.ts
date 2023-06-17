@@ -52,14 +52,13 @@ const tryToAddTask = async (req: Request, res: Response) => {
   const scheduleTaskId = newTask._id;
   let reminderDate = "";
   let reminderTime = "";
+  if (!reminderFlag || prior === "low") {
+    res.json(newTask);
+    return;
+  }
   if (reminderFlag) {
     if (prior) {
-      if (prior === "low") {
-        reminderDate = moment(dueDateTime)
-          .subtract(1, "hour")
-          .format("YYYY-MM-DD");
-        reminderTime = moment(dueDateTime).subtract(1, "hour").format("HH:mm");
-      } else if (prior === "medium") {
+      if (prior === "medium") {
         reminderDate = moment(dueDateTime)
           .subtract(3, "hour")
           .format("YYYY-MM-DD");
