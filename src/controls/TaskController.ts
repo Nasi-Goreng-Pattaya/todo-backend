@@ -14,6 +14,7 @@ import ScheduledNotification from "../models/ScheduleModel";
 import ScheduleModel from "../models/ScheduleModel";
 import { Schedule, ScheduleData } from "../models/ScheduleModel";
 import { forEach } from "lodash";
+import * as scheduleLib from "node-schedule";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -21,20 +22,7 @@ import { forEach } from "lodash";
 const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
-    try {
-      const activeJobId = req.body.id;
-      const list = schedule.getJobs();
-      const currentJob = list[activeJobId];
-      if (!currentJob) {
-        throw new Error("Job not found");
-      }
-      await ScheduledNotification.findByIdAndRemove(activeJobId);
-      currentJob.cancel();
-      await schedule.reSchedule();
-      res.json(tasks);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message, success: false });
-    }
+    res.json(tasks);
   }
 );
 
@@ -67,13 +55,19 @@ const tryToAddTask = async (req: Request, res: Response) => {
   if (reminderFlag) {
     if (prior) {
       if (prior === "low") {
-        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderDate = moment(dueDateTime)
+          .subtract(1, "hour")
+          .format("YYYY-MM-DD");
         reminderTime = moment(dueDateTime).subtract(1, "hour").format("HH:mm");
       } else if (prior === "medium") {
-        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderDate = moment(dueDateTime)
+          .subtract(3, "hour")
+          .format("YYYY-MM-DD");
         reminderTime = moment(dueDateTime).subtract(3, "hour").format("HH:mm");
       } else if (prior === "high") {
-        reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+        reminderDate = moment(dueDateTime)
+          .subtract(6, "hour")
+          .format("YYYY-MM-DD");
         reminderTime = moment(dueDateTime).subtract(6, "hour").format("HH:mm");
       }
     }
@@ -88,6 +82,7 @@ const tryToAddTask = async (req: Request, res: Response) => {
     };
 
     await schedule.createSchedule(payload, userId);
+    // console.log(scheduleLib.scheduledJobs);
     // await ScheduleModel.updateOne({ taskId: newTask._id });
     res.json(newTask);
   } catch (error: any) {
@@ -119,17 +114,23 @@ const tryToUpdateTask = asyncHandler(
       if (dueDateTime !== existingTask?.dueDateTime) {
         if (prior) {
           if (prior === "low") {
-            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderDate = moment(dueDateTime)
+              .subtract(1, "hour")
+              .format("YYYY-MM-DD");
             reminderTime = moment(dueDateTime)
               .subtract(1, "hour")
               .format("HH:mm");
           } else if (prior === "medium") {
-            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderDate = moment(dueDateTime)
+              .subtract(3, "hour")
+              .format("YYYY-MM-DD");
             reminderTime = moment(dueDateTime)
               .subtract(3, "hour")
               .format("HH:mm");
           } else if (prior === "high") {
-            reminderDate = moment(dueDateTime).format("YYYY-MM-DD");
+            reminderDate = moment(dueDateTime)
+              .subtract(6, "hour")
+              .format("YYYY-MM-DD");
             reminderTime = moment(dueDateTime)
               .subtract(6, "hour")
               .format("HH:mm");
@@ -170,38 +171,20 @@ const tryToDeleteTask = asyncHandler(
 
     try {
       const scheduleList = schedule.getJobs();
-
+      console.log(scheduleList);
       const matchingTaskId = await ScheduledNotification.findOne({
         taskId: taskId,
       });
       const matchingScheduleId = matchingTaskId?._id;
-      if (matchingTaskId) {
-        const scheduleKeys = Object.keys(scheduleList);
-        console.log(scheduleKeys);
-        Object.values(scheduleList).forEach((scheduleJob: any) => {
-          if (scheduleJob._id === matchingScheduleId) {
-            scheduleJob.cancel();
-          } else {
-            throw new Error("Schedule does not exist in job list!");
-          }
-        });
+      if (matchingTaskId && matchingScheduleId) {
+        const matchingJob = scheduleList[
+          matchingScheduleId.toString()
+        ] as scheduleLib.Job;
+        matchingJob.cancel();
         await ScheduledNotification.deleteOne({ taskId: taskId });
       } else {
         throw new Error("Schedule does not exist!");
       }
-
-      // scheduleList.forEach(async (scheduleItem: any) => {
-      //   if (scheduleItem._id === matchingScheduleId) {
-      //     const targetSchedule = scheduleItem;
-      //     targetSchedule.cancel();
-      //   }
-      // });
-      // const scheduleKeys = Object.keys(scheduleList);
-      // let schedules = await ScheduledNotification.find({});
-      // schedules = schedules.filter((item) =>
-      //   scheduleKeys.includes(item._id.toString())
-      // );
-      // await schedule.reSchedule();
       res.json({
         tasks: deleteTask,
         schedule: { scheduleList },
