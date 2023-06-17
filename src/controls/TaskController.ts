@@ -48,14 +48,16 @@ const tryToGetTaskById: RequestHandler = asyncHandler(
 // @desc Add new task to user's tasks
 // @route POST /api/task
 // @access Private
-const tryToAddTask: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const tryToAddTask = async (req: Request, res: Response) => {
   const userId = req.body.user.id;
   delete req.body.user;
-  const newTask = await addTask(req.body, userId);
+  let newTask;
+  try {
+    newTask = await addTask(req.body, userId);
+  } catch (e) {
+    res.status(400).json(e);
+    return;
+  }
   const reminderFlag = req.body.hasReminder;
   const prior = req.body.priority;
   const dueDateTime = req.body.dueDateTime;
@@ -85,7 +87,7 @@ const tryToAddTask: RequestHandler = async (
       content: req.body.content,
     };
 
-    await schedule.createSchedule(payload);
+    await schedule.createSchedule(payload, userId);
     // await ScheduleModel.updateOne({ taskId: newTask._id });
     res.json(newTask);
   } catch (error: any) {
@@ -99,7 +101,13 @@ const tryToAddTask: RequestHandler = async (
 const tryToUpdateTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     delete req.body.user;
-    const updatedTask = await updateTask(req.params.id, req.body);
+    let updatedTask;
+    try {
+      updatedTask = await updateTask(req.params.id, req.body);
+    } catch (e) {
+      res.status(400).json(e);
+      return;
+    }
     const taskId = req.params.id;
     const reminderFlag = req.body.hasReminder;
     const prior = req.body.priority;
@@ -144,13 +152,8 @@ const tryToUpdateTask = asyncHandler(
           }
         );
       } else {
-        res.json({
-          Task: updatedTask,
-          Schedule: "No matching schedule",
-          TaskId: taskId,
-        });
+        res.json(updatedTask);
       }
-      // res.json(updatedTask);
     } catch (error: any) {
       res.status(400).json({ message: error.message, success: false });
     }

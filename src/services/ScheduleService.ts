@@ -7,6 +7,7 @@ import ScheduledNotification, {
 import nodemailer, { Transporter } from "nodemailer";
 import User from "../models/UserModel";
 import TaskModel from "../models/TaskModel";
+import UserModel from "../models/UserModel";
 
 const mailTransporter: Transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -19,8 +20,13 @@ const mailTransporter: Transporter = nodemailer.createTransport({
 
 const schedule: Record<string, any> = {};
 
-schedule.createSchedule = async (data: ScheduleData): Promise<void> => {
+schedule.createSchedule = async (
+  data: ScheduleData,
+  userId: string
+): Promise<void> => {
   try {
+    const user = await UserModel.findById(userId).exec();
+    console.log(user?.email);
     const scheduledNotification = new ScheduledNotification({
       taskId: data.taskId,
       reminderDate: data.reminderDate,
@@ -61,17 +67,20 @@ schedule.createSchedule = async (data: ScheduleData): Promise<void> => {
         try {
           const emailStruc = {
             from: "tzehengleong567@gmail.com",
-            to: "tzehengleong567@gmail.com",
+            to: user?.email,
             subject: payload.title,
             text: payload.content,
           };
           await mailTransporter.sendMail(emailStruc);
         } catch (error) {
+          console.log(error);
           throw error;
         }
       }
     );
+    console.log(job);
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
