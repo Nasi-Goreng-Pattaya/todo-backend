@@ -13,6 +13,7 @@ import TaskModel from "../models/TaskModel";
 import ScheduledNotification from "../models/ScheduleModel";
 import ScheduleModel from "../models/ScheduleModel";
 import { Schedule, ScheduleData } from "../models/ScheduleModel";
+import { forEach } from "lodash";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -29,6 +30,7 @@ const tryToGetTasks: RequestHandler = asyncHandler(
       }
       await ScheduledNotification.findByIdAndRemove(activeJobId);
       currentJob.cancel();
+      await schedule.reSchedule();
       res.json(tasks);
     } catch (error: any) {
       res.status(400).json({ message: error.message, success: false });
@@ -164,13 +166,45 @@ const tryToDeleteTask = asyncHandler(
     const taskId = req.params.id;
 
     try {
+      const scheduleList = schedule.getJobs();
+
       const matchingTaskId = await ScheduledNotification.findOne({
         taskId: taskId,
       });
+      const matchingScheduleId = matchingTaskId?._id;
       if (matchingTaskId) {
+        const scheduleKeys = Object.keys(scheduleList);
+        console.log(scheduleKeys);
+        Object.values(scheduleList).forEach((scheduleJob: any) => {
+          if (scheduleJob._id === matchingScheduleId) {
+            scheduleJob.cancel();
+          } else {
+            throw new Error("Schedule does not exist in job list!");
+          }
+        });
         await ScheduledNotification.deleteOne({ taskId: taskId });
+      } else {
+        throw new Error("Schedule does not exist!");
       }
-      res.json(deletedTask);
+
+      // scheduleList.forEach(async (scheduleItem: any) => {
+      //   if (scheduleItem._id === matchingScheduleId) {
+      //     const targetSchedule = scheduleItem;
+      //     targetSchedule.cancel();
+      //   }
+      // });
+      // const scheduleKeys = Object.keys(scheduleList);
+      // let schedules = await ScheduledNotification.find({});
+      // schedules = schedules.filter((item) =>
+      //   scheduleKeys.includes(item._id.toString())
+      // );
+      // await schedule.reSchedule();
+      res.json({
+        tasks: deleteTask,
+        schedule: { scheduleList },
+        status: "success",
+        message: "Delete task and schedule successfully",
+      });
     } catch (error: any) {
       res.status(400).json({ message: error.message, success: false });
     }

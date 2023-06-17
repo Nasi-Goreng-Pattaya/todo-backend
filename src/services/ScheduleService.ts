@@ -90,7 +90,21 @@ schedule.reSchedule = async (): Promise<void> => {
       const scheduleId = scheduledNotification._id.toString();
       const scheduleTimeout = `${minutes} ${hours} ${day} ${month} *`;
       scheduleLib.scheduleJob(scheduleId, scheduleTimeout, async () => {
-        const user = await User.find();
+        const payload = {
+          title: scheduledNotification.title,
+          content: scheduledNotification.content,
+        };
+        try {
+          const emailStruc = {
+            from: "tzehengleong567@gmail.com",
+            to: "tzehengleong567@gmail.com",
+            subject: payload.title,
+            text: payload.content,
+          };
+          await mailTransporter.sendMail(emailStruc);
+        } catch (error) {
+          throw error;
+        }
       });
     });
   } catch (error) {
