@@ -19,6 +19,7 @@ import * as scheduleLib from "node-schedule";
 const tryToGetTasks: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const tasks = await getTasks(req.body.user.id);
+
     res.json(tasks);
   }
 );
@@ -160,9 +161,8 @@ const tryToUpdateTask = asyncHandler(
         );
         matchingJob.reschedule(scheduleTimeOut);
         res.json(updatedTask);
-      } else {
-        res.json(updatedTask);
       }
+      res.json(updatedTask);
     } catch (error: any) {
       res.status(400).json({ message: error.message, success: false });
     }
