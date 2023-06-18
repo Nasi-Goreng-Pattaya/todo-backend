@@ -1,4 +1,3 @@
-import { error } from "firebase-functions/logger";
 import Task from "../models/TaskModel";
 
 const getTasks = async (userId: string) => {
