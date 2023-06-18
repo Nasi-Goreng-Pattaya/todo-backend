@@ -39,11 +39,11 @@ schedule.createSchedule = async (
     await scheduledNotification.save();
     const dayToSent = data.reminderDate?.split("-");
     const timeToSent = data.reminderTime?.split(":");
-    let hours: Number = 0;
-    let minutes: Number = 0;
-    let day: Number = 0;
-    let month: Number = 0;
-    let year: Number = 0;
+    let hours: number = 0;
+    let minutes: number = 0;
+    let day: number = 0;
+    let month: number = 0;
+    let year: number = 0;
     if (timeToSent) {
       hours = parseInt(timeToSent[0]);
       minutes = parseInt(timeToSent[1]);

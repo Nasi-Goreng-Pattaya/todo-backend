@@ -27,6 +27,7 @@ const reminderSchema = new mongoose.Schema(
 );
 
 export interface ScheduleData {
+  scheduleId: string;
   taskId: string;
   reminderDate: string;
   reminderTime: string;

@@ -12,6 +12,7 @@ import schedule from "../services/ScheduleService";
 import TaskModel from "../models/TaskModel";
 import ScheduledNotification from "../models/ScheduleModel";
 import * as scheduleLib from "node-schedule";
+import { ScheduleData } from "../models/ScheduleModel";
 
 // @desc Get user's tasks data
 // @route GET /api/task
@@ -31,6 +32,21 @@ const tryToGetTaskById: RequestHandler = asyncHandler(
   }
 );
 
+function reminderChecking(
+  currentDateTime: string,
+  dueDateTime: Date,
+  hourPrior: number
+): string {
+  let reminderDateTime = moment(dueDateTime)
+    .subtract(hourPrior, "hour")
+    .format("YYYY-MM-DD HH:mm");
+  if (reminderDateTime > currentDateTime) {
+    return reminderDateTime;
+  } else {
+    return reminderChecking(currentDateTime, dueDateTime, hourPrior / 2.0);
+  }
+}
+
 // @desc Add new task to user's tasks
 // @route POST /api/task
 // @access Private
@@ -48,32 +64,38 @@ const tryToAddTask = async (req: Request, res: Response) => {
   const prior = req.body.priority;
   const dueDateTime = req.body.dueDateTime;
   const scheduleTaskId = newTask._id;
-  let reminderDate = "";
-  let reminderTime = "";
+  let reminderDateTime = "";
+  // let reminderDate = "";
+  // let reminderTime = "";
   if (!reminderFlag || prior === "low") {
     res.json(newTask);
     return;
   }
+  const currentDateTime = moment().format("YYYY-MM-DD HH:mm");
   if (reminderFlag) {
     if (prior) {
       if (prior === "medium") {
-        reminderDate = moment(dueDateTime)
-          .subtract(3, "hour")
-          .format("YYYY-MM-DD");
-        reminderTime = moment(dueDateTime).subtract(3, "hour").format("HH:mm");
+        reminderDateTime = reminderChecking(currentDateTime, dueDateTime, 3);
+
+        // reminderDate = moment(dueDateTime)
+        //   .subtract(3, "hour")
+        //   .format("YYYY-MM-DD");
+        // reminderTime = moment(dueDateTime).subtract(3, "hour").format("HH:mm");
       } else if (prior === "high") {
-        reminderDate = moment(dueDateTime)
-          .subtract(6, "hour")
-          .format("YYYY-MM-DD");
-        reminderTime = moment(dueDateTime).subtract(6, "hour").format("HH:mm");
+        reminderDateTime = reminderChecking(currentDateTime, dueDateTime, 6);
+
+        // reminderDate = moment(dueDateTime)
+        //   .subtract(6, "hour")
+        //   .format("YYYY-MM-DD");
+        // reminderTime = moment(dueDateTime).subtract(6, "hour").format("HH:mm");
       }
     }
   }
   try {
     const payload = {
       taskId: scheduleTaskId,
-      reminderDate: reminderDate,
-      reminderTime: reminderTime,
+      reminderDate: moment(reminderDateTime).format("YYYY-MM-DD"),
+      reminderTime: moment(reminderDateTime).format("HH:mm"),
       title: req.body.title,
       content: req.body.content,
     };
@@ -103,67 +125,91 @@ const tryToUpdateTask = asyncHandler(
     const taskId = req.params.id;
     const scheduleList = schedule.getJobs();
     console.log(scheduleList);
-
+    console.log(req.body);
+    const userId = req.body.userId;
     const reminderFlag = req.body.hasReminder;
     const prior = req.body.priority;
     const dueDateTime = req.body.dueDateTime;
     const existingTask = await TaskModel.findById(taskId);
+    let reminderDateTime = "";
     let reminderDate = "";
     let reminderTime = "";
     if (!reminderFlag || prior === "low") {
       res.json(updatedTask);
       return;
     }
+    const currentDateTime = moment().format("YYYY-MM-DD HH:mm");
     if (reminderFlag) {
       if (dueDateTime !== existingTask?.dueDateTime) {
         if (prior) {
           if (prior === "medium") {
-            reminderDate = moment(dueDateTime)
-              .subtract(3, "hour")
-              .format("YYYY-MM-DD");
-            reminderTime = moment(dueDateTime)
-              .subtract(3, "hour")
-              .format("HH:mm");
+            reminderDateTime = reminderChecking(
+              currentDateTime,
+              dueDateTime,
+              3
+            );
           } else if (prior === "high") {
-            reminderDate = moment(dueDateTime)
-              .subtract(6, "hour")
-              .format("YYYY-MM-DD");
-            reminderTime = moment(dueDateTime)
-              .subtract(6, "hour")
-              .format("HH:mm");
+            reminderDateTime = reminderChecking(
+              currentDateTime,
+              dueDateTime,
+              6
+            );
           }
         }
       }
     }
+    console.log({ reminderDateTime });
     try {
-      const hours = moment(reminderTime).hours();
-      const minutes = moment(reminderTime).minutes();
-      const day = moment(reminderTime).day();
-      const month = moment(reminderTime).month();
+      const hours = moment(reminderDateTime).hours();
+      const minutes = moment(reminderDateTime).minutes();
+      const day = moment(reminderDateTime).day();
+      const month = moment(reminderDateTime).month();
       const scheduleTimeOut = `${minutes} ${hours} ${day} ${month} *`;
       const matchingTaskId = await ScheduledNotification.findOne({
         taskId: taskId,
       });
+      const payload = {
+        taskId: taskId,
+        reminderDate: moment(reminderDateTime).format("YYYY-MM-DD"),
+        reminderTime: moment(reminderDateTime).format("HH:mm"),
+        title: req.body.title,
+        content: req.body.content,
+      };
       const matchingScheduleId = matchingTaskId?._id;
       if (matchingTaskId && matchingScheduleId) {
         const matchingJob = scheduleList[
           matchingScheduleId.toString()
         ] as scheduleLib.Job;
-
         await ScheduledNotification.updateOne(
           { taskId: taskId },
           {
-            reminderDate: reminderDate,
-            reminderTime: reminderTime,
+            reminderDate: moment(reminderDateTime).format("YYYY-MM-DD"),
+            reminderTime: moment(reminderDateTime).format("HH:mm"),
             title: req.body.title,
             content: req.body.content,
           }
         );
-        matchingJob.reschedule(scheduleTimeOut);
-        res.json(updatedTask);
+
+        if (updatedTask?.status === "completed") {
+          matchingJob.cancel();
+        } else {
+          matchingJob.cancel();
+          await schedule.createSchedule(payload, userId);
+          // console.log(
+          //   moment(matchingJob.nextInvocation().toISOString()).format(
+          //     "YYYY/MM/DD HH:mm"
+          //   )
+          // );
+          // const scheduleSuccess = matchingJob.reschedule(scheduleTimeOut);
+          // console.log("Successfully rescheduled:", scheduleSuccess);
+        }
+      }
+      if (!matchingScheduleId) {
+        await schedule.createSchedule(payload, userId);
       }
       res.json(updatedTask);
     } catch (error: any) {
+      console.log(error);
       res.status(400).json({ message: error.message, success: false });
     }
   }
