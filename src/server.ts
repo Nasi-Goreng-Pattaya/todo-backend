@@ -11,7 +11,6 @@ import fileUpload from "express-fileupload";
 import schedule from "./services/ScheduleService";
 
 dotenv.config();
-connectDB();
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,7 +26,8 @@ app.use("/api/reminder", reminderRouter);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(colors.bgGreen(`Server started on port ${port}`));
+  await connectDB();
   schedule.reSchedule();
 });

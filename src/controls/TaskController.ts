@@ -9,7 +9,7 @@ import {
 } from "../services/TaskService";
 import moment from "moment";
 import schedule from "../services/ScheduleService";
-import TaskModel from "../models/TaskModel";
+import TaskModel, { Task } from "../models/TaskModel";
 import ScheduledNotification from "../models/ScheduleModel";
 import * as scheduleLib from "node-schedule";
 import { ScheduleData } from "../models/ScheduleModel";
@@ -116,13 +116,27 @@ const tryToUpdateTask = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     delete req.body.user;
     let updatedTask;
+    const taskId = req.params.id;
+    const taskPayload = req.body as Task;
+    let markAsNotCompleted = false;
+    const oldTask = await getTaskById(taskId, taskPayload.userId.toString());
+    if (
+      ((oldTask?.completedDateTime === undefined ||
+        oldTask.completedDateTime === null) &&
+        taskPayload.status === "completed") ||
+      (oldTask?.status !== "completed" && taskPayload.status === "completed")
+    ) {
+      taskPayload.completedDateTime = new Date();
+    } else if (taskPayload.status !== "completed") {
+      markAsNotCompleted = true;
+    }
+
     try {
-      updatedTask = await updateTask(req.params.id, req.body);
+      updatedTask = await updateTask(taskId, taskPayload, markAsNotCompleted);
     } catch (e) {
       res.status(400).json(e);
       return;
     }
-    const taskId = req.params.id;
     const scheduleList = schedule.getJobs();
     console.log(scheduleList);
     console.log(req.body);

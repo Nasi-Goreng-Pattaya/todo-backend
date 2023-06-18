@@ -23,7 +23,7 @@ const taskSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      default: "",
     },
     category: {
       type: String,
@@ -38,6 +38,9 @@ const taskSchema = new mongoose.Schema(
         },
         message: "Due date cannot be in the past",
       },
+    },
+    completedDateTime: {
+      type: Date,
     },
     status: {
       type: String,
