@@ -8,6 +8,7 @@ import colors from "colors";
 import cors from "cors";
 import { reminderRouter } from "./routes/ScheduleRoutes";
 import fileUpload from "express-fileupload";
+import schedule from "./services/ScheduleService";
 
 dotenv.config();
 connectDB();
@@ -26,6 +27,7 @@ app.use("/api/reminder", reminderRouter);
 
 app.use(errorHandler);
 
-app.listen(port, () =>
-  console.log(colors.bgGreen(`Server started on port ${port}`))
-);
+app.listen(port, () => {
+  console.log(colors.bgGreen(`Server started on port ${port}`));
+  schedule.reSchedule();
+});
