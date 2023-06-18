@@ -1,3 +1,4 @@
+import { error } from "firebase-functions/logger";
 import Task from "../models/TaskModel";
 
 const getTasks = async (userId: string) => {
@@ -15,11 +16,19 @@ const addTask = async (taskBody: Object, userId: string) => {
   return task;
 };
 
-const updateTask = async (id: string, newInfoBody: Object) => {
-  return await Task.findByIdAndUpdate(id, newInfoBody, {
+const updateTask = async (
+  id: string,
+  newInfoBody: Object,
+  markAsNotCompleted = false
+) => {
+  const task = await Task.findByIdAndUpdate(id, newInfoBody, {
     new: true,
     runValidators: true,
   });
+  if (task && markAsNotCompleted) {
+    task.completedDateTime = undefined;
+    await task.save();
+  }
 };
 
 const deleteTask = async (id: string) => {
