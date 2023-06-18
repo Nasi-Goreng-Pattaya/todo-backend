@@ -8,13 +8,16 @@ import nodemailer, { Transporter } from "nodemailer";
 import User from "../models/UserModel";
 import TaskModel from "../models/TaskModel";
 import UserModel from "../models/UserModel";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const mailTransporter: Transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp.sendgrid.net",
   port: 587,
   auth: {
-    user: "tzehengleong567@gmail.com",
-    pass: "hibiubieouhsizsp",
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_API_KEY,
   },
 });
 
@@ -66,12 +69,14 @@ schedule.createSchedule = async (
         };
         try {
           const emailStruc = {
-            from: "tzehengleong567@gmail.com",
+            from: "4amnasigorengpattaya@gmail.com",
             to: user?.email,
             subject: payload.title,
             text: payload.content,
           };
-          await mailTransporter.sendMail(emailStruc);
+          const sendResult = await mailTransporter.sendMail(emailStruc);
+          console.log(sendResult);
+          console.log("Email Sent!");
         } catch (error) {
           console.log(error);
           throw error;
@@ -112,13 +117,16 @@ schedule.reSchedule = async (): Promise<void> => {
           };
           try {
             const emailStruc = {
-              from: "tzehengleong567@gmail.com",
+              from: "4amnasigorengpattaya@gmail.com",
               to: user?.email,
               subject: payload.title,
               text: payload.content,
             };
-            await mailTransporter.sendMail(emailStruc);
+            const sendResult = await mailTransporter.sendMail(emailStruc);
+            console.log(sendResult);
+            console.log("Email Sent!");
           } catch (error) {
+            console.log(error);
             throw error;
           }
         }
@@ -144,6 +152,7 @@ schedule.updateSchedule = async (data: ScheduleData) => {
       await originalSchedule.save();
     }
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };

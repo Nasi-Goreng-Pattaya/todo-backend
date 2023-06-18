@@ -250,16 +250,14 @@ const tryToDeleteTask = asyncHandler(
         ] as scheduleLib.Job;
         matchingJob.cancel();
         await ScheduledNotification.deleteOne({ taskId: taskId });
-      } else {
-        throw new Error("Schedule does not exist!");
       }
       res.json({
-        tasks: deleteTask,
-        schedule: { scheduleList },
+        tasks: deletedTask,
         status: "success",
         message: "Delete task and schedule successfully",
       });
     } catch (error: any) {
+      console.log(error);
       res.status(400).json({ message: error.message, success: false });
     }
   }
