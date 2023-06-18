@@ -26,8 +26,9 @@ const updateTask = async (
   });
   if (task && markAsNotCompleted) {
     task.completedDateTime = undefined;
-    await task.save();
+    return await task.save();
   }
+  return task;
 };
 
 const deleteTask = async (id: string) => {
